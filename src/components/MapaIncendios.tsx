@@ -60,7 +60,7 @@ const MapaIncendios = ({ reportes }: MapaIncendiosProps) => {
       center={centro}
       zoom={13}
       className="w-full h-full rounded-lg"
-      style={{ minHeight: '500px' }}
+      style={{ height: '100%', width: '100%', minHeight: '400px' }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
