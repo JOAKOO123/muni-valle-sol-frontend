@@ -12,7 +12,7 @@ const Header = () => {
     <header className="w-full h-16 bg-gray-900 text-white flex items-center justify-between px-6 shadow-md">
       <div className="flex items-center gap-3">
         <span className="text-xl font-bold">Municipalidad Valle del Sol</span>
-        <span className="text-sm text-gray-400">| Gestion de Incendios</span>
+        <span className="text-md text-gray-300">| Gestion de Incendios</span>
       </div>
 
       <div className="flex items-center gap-4">
