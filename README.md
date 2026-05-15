@@ -20,6 +20,56 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Pruebas Unitarias con Vitest
+
+El proyecto incluye una configuracion de pruebas unitarias con **Vitest** + **Testing Library**.
+
+### Comandos disponibles
+
+```bash
+npm run test
+npm run test:watch
+npm run test:coverage
+```
+
+- `npm run test`: ejecuta toda la suite una vez.
+- `npm run test:watch`: ejecuta Vitest en modo interactivo para desarrollo.
+- `npm run test:coverage`: genera reporte de cobertura (`text`, `lcov`, `html`).
+
+### Estructura de pruebas
+
+Las pruebas estan organizadas en `src/tests/` por tipo:
+
+- `components/`
+- `services/`
+- `store/`
+- `types/`
+- `validations/`
+
+Ademas, existe un archivo de setup global en `src/tests/setup.ts` para:
+
+- registrar `@testing-library/jest-dom`
+- limpiar el DOM tras cada test
+- mockear `next/navigation`
+- definir `NEXT_PUBLIC_BFF_URL` para pruebas
+
+### Cobertura
+
+La configuracion de cobertura se encuentra en `vitest.config.ts` y considera principalmente:
+
+- `src/services/**`
+- `src/store/**`
+- `src/hooks/**`
+- `src/components/**`
+- `src/types/**`
+
+Excluye, entre otros:
+
+- `src/tests/**`
+- `src/app/**`
+
+Al ejecutar `npm run test:coverage`, el reporte HTML queda disponible en el directorio `coverage/`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
