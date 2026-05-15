@@ -11,12 +11,13 @@ const LoginPage = () => {
   const router = useRouter()
   const { login } = useAuthStore()
 
-  const [tab, setTab]                           = useState<Tab>('login')
-  const [email, setEmail]                       = useState('')
-  const [password, setPassword]                 = useState('')
-  const [confirmPassword, setConfirmPassword]   = useState('')
-  const [error, setError]                       = useState('')
-  const [loading, setLoading]                   = useState(false)
+  const [tab, setTab]                         = useState<Tab>('login')
+  const [nombre, setNombre]                   = useState('')
+  const [email, setEmail]                     = useState('')
+  const [password, setPassword]               = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError]                     = useState('')
+  const [loading, setLoading]                 = useState(false)
 
   const isLogin = tab === 'login'
 
@@ -33,11 +34,17 @@ const LoginPage = () => {
     try {
       if (isLogin) {
         const data = await loginService(email, password)
-        login({ id: data.id, email: data.email, nombre: email.split('@')[0], rol: data.rol || 'CIUDADANO' })
+        login({
+          id:     data.id,
+          nombre: data.nombre,
+          email:  data.email,
+          rol:    data.rol || 'CIUDADANO',
+        })
         router.push('/dashboard')
       } else {
-        await registerService(email, password)
+        await registerService(nombre, email, password)
         setTab('login')
+        setNombre('')
         setEmail('')
         setPassword('')
         setConfirmPassword('')
@@ -53,7 +60,6 @@ const LoginPage = () => {
     <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
-        {/* Tabs */}
         <div className={`flex rounded-t-2xl overflow-hidden transition-colors duration-300 ${
           isLogin ? 'bg-gray-900' : 'bg-white'
         }`}>
@@ -72,14 +78,13 @@ const LoginPage = () => {
             className={`flex-1 py-4 text-sm font-semibold transition-all ${
               !isLogin
                 ? 'text-gray-900 border-b-2 border-gray-900'
-                : 'text-gray-500 hover:text-gray-300'
+                : 'text-gray.500 hover:text-gray-300'
             }`}
           >
             Registrarse
           </button>
         </div>
 
-        {/* Form */}
         <div className={`rounded-b-2xl shadow-xl p-8 transition-colors duration-300 ${
           isLogin ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
         }`}>
@@ -98,6 +103,23 @@ const LoginPage = () => {
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+
+            {!isLogin && (
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Nombre completo
+                </label>
+                <input
+                  type="text"
+                  placeholder="Juan Perez"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  required
+                  className="px-4 py-2.5 rounded-lg text-sm outline-none border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-gray-900 bg-white transition-colors"
+                />
+              </div>
+            )}
+
             <div className="flex flex-col gap-1">
               <label className={`text-xs font-semibold uppercase tracking-wide ${
                 isLogin ? 'text-gray-400' : 'text-gray-500'
@@ -188,8 +210,6 @@ const LoginPage = () => {
       </div>
     </div>
   )
-
 }
 
 export default LoginPage
-
