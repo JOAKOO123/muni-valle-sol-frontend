@@ -33,7 +33,7 @@ const LoginPage = () => {
     try {
       if (isLogin) {
         const data = await loginService(email, password)
-        login(data.token, { id: data.id, email: data.email, nombre: email.split('@')[0], rol: data.rol || 'CIUDADANO' })
+        login({ id: data.id, email: data.email, nombre: email.split('@')[0], rol: data.rol || 'CIUDADANO' })
         router.push('/dashboard')
       } else {
         await registerService(email, password)

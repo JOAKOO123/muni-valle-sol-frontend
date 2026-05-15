@@ -1,12 +1,26 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import useAppStore from '@/store/useAppStore'
 import useAuthStore from '@/store/useAuthStore'
+import { logout as logoutService } from '@/services/authService'
 
 const Header = () => {
+  const router = useRouter()
   const { darkMode, toggleDarkMode } = useAppStore()
   const { usuario, isAuthenticated, logout } = useAuthStore()
+
+  const handleLogout = async () => {
+    try {
+      await logoutService()
+    } catch {
+      // Si falla el BFF igual limpiamos el estado local
+    } finally {
+      logout()
+      router.push('/login')
+    }
+  }
 
   return (
     <header className="w-full h-16 bg-gray-900 text-white flex items-center justify-between px-6 shadow-md">
@@ -27,7 +41,7 @@ const Header = () => {
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-300">{usuario?.nombre}</span>
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="text-sm text-red-400 hover:text-red-300 transition"
             >
               Cerrar sesion
