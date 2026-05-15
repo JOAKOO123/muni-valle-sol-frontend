@@ -57,40 +57,44 @@ const DashboardPage = () => {
   }, [])
 
   return (
-    <div className={`flex w-full ${darkMode ? 'dark' : ''}`}>
+    <div className={`flex w-full min-h-screen ${darkMode ? 'dark' : ''}`}>
       <Sidebar />
 
-      <main className="flex-1 flex flex-col p-4 gap-4 overflow-auto">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">
+      <main className="flex-1 flex flex-col p-3 md:p-4 gap-4 overflow-auto md:ml-0">
+
+        {/* Header del dashboard */}
+        <div className="flex items-center justify-between mt-10 md:mt-0">
+          <h1 className="text-lg md:text-xl font-bold text-gray-800 dark:text-white">
             Panel de Control
           </h1>
           <div className="flex items-center gap-3">
             {isCiudadano && (
               <button
                 onClick={() => setShowAlertModal(true)}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+                className="rounded-lg bg-red-600 px-3 md:px-4 py-2 text-xs md:text-sm font-semibold text-white transition hover:bg-red-700"
               >
                 Nueva Alerta
               </button>
             )}
             {loading && (
-              <span className="text-sm text-gray-500">Actualizando...</span>
+              <span className="text-xs md:text-sm text-gray-500">Actualizando...</span>
             )}
-            {error && <span className="text-sm text-red-500">{error}</span>}
+            {error && <span className="text-xs md:text-sm text-red-500">{error}</span>}
           </div>
         </div>
 
-        <div className="flex gap-4" style={{ height: '500px' }}>
-          <div className="flex-1 bg-white rounded-lg shadow overflow-hidden">
+        {/* Mapa + Alertas */}
+        <div className="flex flex-col lg:flex-row gap-4" style={{ minHeight: '420px' }}>
+          <div className="flex-1 bg-white rounded-lg shadow overflow-hidden" style={{ minHeight: '320px' }}>
             <FireMap reports={reportes} />
           </div>
 
-          <div className="w-72 bg-white rounded-lg shadow p-4 overflow-y-auto">
+          <div className="w-full lg:w-72 bg-white rounded-lg shadow p-4 overflow-y-auto max-h-96 lg:max-h-none">
             <AlertPanel alerts={alertasActivas} />
           </div>
         </div>
 
+        {/* Tabla de reportes */}
         <div className="bg-white rounded-lg shadow p-4">
           <ReportTable reportes={reportes} onReportesChange={setReportes} />
         </div>
