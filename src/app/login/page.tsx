@@ -1,59 +1,150 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import { z } from 'zod'
 import useAuthStore from '@/store/useAuthStore'
 import { login as loginService, register as registerService } from '@/services/authService'
 
 type Tab = 'login' | 'register'
 
+const DOMINIOS_VALIDOS = [
+  'gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com',
+  'icloud.com', 'live.com', 'msn.com', 'duocuc.cl',
+  'uc.cl', 'usach.cl', 'uach.cl', 'puc.cl', 'udp.cl',
+  'udd.cl', 'unab.cl', 'uai.cl', 'uft.cl', 'inacap.cl'
+]
+
+const emailSchema = z
+  .string()
+  .email('Ingresa un correo electronico valido')
+  .refine((email) => {
+    const dominio = email.split('@')[1]
+    return DOMINIOS_VALIDOS.includes(dominio)
+  }, 'El dominio del correo no esta permitido')
+
+const passwordSchema = z
+  .string()
+  .min(8, 'La contrasena debe tener al menos 8 caracteres')
+  .regex(/[A-Z]/, 'Debe contener al menos una letra mayuscula')
+  .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Debe contener al menos un caracter especial')
+
+const loginSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1, 'La contrasena es requerida'),
+})
+
+const registerSchema = z.object({
+  nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  email: emailSchema,
+  password: passwordSchema,
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Las contrasenas no coinciden',
+  path: ['confirmPassword'],
+})
+
+type LoginForm = z.infer<typeof loginSchema>
+type RegisterForm = z.infer<typeof registerSchema>
+type FormErrors = Partial<Record<string, string>>
+
 const LoginPage = () => {
   const router = useRouter()
   const { login } = useAuthStore()
 
-  const [tab, setTab]                         = useState<Tab>('login')
-  const [nombre, setNombre]                   = useState('')
-  const [email, setEmail]                     = useState('')
-  const [password, setPassword]               = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError]                     = useState('')
-  const [loading, setLoading]                 = useState(false)
+  const [tab, setTab] = useState<Tab>('login')
+  const [loading, setLoading] = useState(false)
+  const [serverError, setServerError] = useState('')
+  const [errors, setErrors] = useState<FormErrors>({})
+
+  const [loginForm, setLoginForm] = useState<LoginForm>({
+    email: '',
+    password: '',
+  })
+
+  const [registerForm, setRegisterForm] = useState<RegisterForm>({
+    nombre: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  })
 
   const isLogin = tab === 'login'
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+  const handleTabChange = (newTab: Tab) => {
+    setTab(newTab)
+    setErrors({})
+    setServerError('')
+  }
 
-    if (!isLogin && password !== confirmPassword) {
-      setError('Las contrasenas no coinciden')
-      return
+  const validateLogin = (): boolean => {
+    const result = loginSchema.safeParse(loginForm)
+    if (!result.success) {
+      const fieldErrors: FormErrors = {}
+      result.error.issues.forEach((err) => {
+        if (err.path[0]) fieldErrors[err.path[0] as string] = err.message
+      })
+      setErrors(fieldErrors)
+      return false
+    }
+    setErrors({})
+    return true
+  }
+
+  const validateRegister = (): boolean => {
+    const result = registerSchema.safeParse(registerForm)
+    if (!result.success) {
+      const fieldErrors: FormErrors = {}
+      result.error.issues.forEach((err) => {
+        if (err.path[0]) fieldErrors[err.path[0] as string] = err.message
+      })
+      setErrors(fieldErrors)
+      return false
+    }
+    setErrors({})
+    return true
+  }
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setServerError('')
+
+    if (isLogin) {
+      if (!validateLogin()) return
+    } else {
+      if (!validateRegister()) return
     }
 
     setLoading(true)
     try {
       if (isLogin) {
-        const data = await loginService(email, password)
+        const data = await loginService(loginForm.email, loginForm.password)
         login({
-          id:     data.id,
+          id: data.id,
           nombre: data.nombre,
-          email:  data.email,
-          rol:    data.rol || 'CIUDADANO',
+          email: data.email,
+          rol: data.rol || 'CIUDADANO',
         })
         router.push('/dashboard')
       } else {
-        await registerService(nombre, email, password)
-        setTab('login')
-        setNombre('')
-        setEmail('')
-        setPassword('')
-        setConfirmPassword('')
+        await registerService(registerForm.nombre, registerForm.email, registerForm.password)
+        handleTabChange('login')
       }
-    } catch (err: any) {
-      setError(err.message || 'Ocurrio un error')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Ocurrio un error'
+      setServerError(message)
     } finally {
       setLoading(false)
     }
+  }
+
+  const inputClass = (field: string, dark: boolean) => {
+    const base = 'px-4 py-2.5 rounded-lg text-sm outline-none border transition-colors'
+    const darkStyle = dark
+      ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-gray-400'
+      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-gray-900'
+    const errorStyle = errors[field] ? 'border-red-500' : ''
+    return `${base} ${darkStyle} ${errorStyle}`
   }
 
   return (
@@ -64,7 +155,7 @@ const LoginPage = () => {
           isLogin ? 'bg-gray-900' : 'bg-white'
         }`}>
           <button
-            onClick={() => { setTab('login'); setError('') }}
+            onClick={() => handleTabChange('login')}
             className={`flex-1 py-4 text-sm font-semibold transition-all ${
               isLogin
                 ? 'text-white border-b-2 border-white'
@@ -74,11 +165,11 @@ const LoginPage = () => {
             Iniciar sesion
           </button>
           <button
-            onClick={() => { setTab('register'); setError('') }}
+            onClick={() => handleTabChange('register')}
             className={`flex-1 py-4 text-sm font-semibold transition-all ${
               !isLogin
                 ? 'text-gray-900 border-b-2 border-gray-900'
-                : 'text-gray.500 hover:text-gray-300'
+                : 'text-gray-500 hover:text-gray-300'
             }`}
           >
             Registrarse
@@ -92,13 +183,13 @@ const LoginPage = () => {
             {isLogin ? 'Bienvenido de vuelta' : 'Crear cuenta'}
           </h1>
 
-          {error && (
+          {serverError && (
             <div className={`mb-4 px-4 py-3 rounded-lg text-sm border ${
               isLogin
                 ? 'bg-red-900/30 border-red-500/30 text-red-400'
                 : 'bg-red-50 border-red-200 text-red-600'
             }`}>
-              {error}
+              {serverError}
             </div>
           )}
 
@@ -112,11 +203,11 @@ const LoginPage = () => {
                 <input
                   type="text"
                   placeholder="Juan Perez"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  required
-                  className="px-4 py-2.5 rounded-lg text-sm outline-none border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-gray-900 bg-white transition-colors"
+                  value={registerForm.nombre}
+                  onChange={(e) => setRegisterForm({ ...registerForm, nombre: e.target.value })}
+                  className={inputClass('nombre', false)}
                 />
+                {errors.nombre && <p className="text-xs text-red-400">{errors.nombre}</p>}
               </div>
             )}
 
@@ -129,15 +220,14 @@ const LoginPage = () => {
               <input
                 type="email"
                 placeholder="tu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className={`px-4 py-2.5 rounded-lg text-sm outline-none border transition-colors ${
-                  isLogin
-                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-gray-400'
-                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-gray-900'
-                }`}
+                value={isLogin ? loginForm.email : registerForm.email}
+                onChange={(e) => isLogin
+                  ? setLoginForm({ ...loginForm, email: e.target.value })
+                  : setRegisterForm({ ...registerForm, email: e.target.value })
+                }
+                className={inputClass('email', isLogin)}
               />
+              {errors.email && <p className="text-xs text-red-400">{errors.email}</p>}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -149,15 +239,19 @@ const LoginPage = () => {
               <input
                 type="password"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className={`px-4 py-2.5 rounded-lg text-sm outline-none border transition-colors ${
-                  isLogin
-                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-gray-400'
-                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-gray-900'
-                }`}
+                value={isLogin ? loginForm.password : registerForm.password}
+                onChange={(e) => isLogin
+                  ? setLoginForm({ ...loginForm, password: e.target.value })
+                  : setRegisterForm({ ...registerForm, password: e.target.value })
+                }
+                className={inputClass('password', isLogin)}
               />
+              {errors.password && <p className="text-xs text-red-400">{errors.password}</p>}
+              {!isLogin && (
+                <p className="text-xs text-gray-400">
+                  Minimo 8 caracteres, una mayuscula y un caracter especial
+                </p>
+              )}
             </div>
 
             {!isLogin && (
@@ -168,11 +262,11 @@ const LoginPage = () => {
                 <input
                   type="password"
                   placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="px-4 py-2.5 rounded-lg text-sm outline-none border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-gray-900 bg-white transition-colors"
+                  value={registerForm.confirmPassword}
+                  onChange={(e) => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
+                  className={inputClass('confirmPassword', false)}
                 />
+                {errors.confirmPassword && <p className="text-xs text-red-400">{errors.confirmPassword}</p>}
               </div>
             )}
 
