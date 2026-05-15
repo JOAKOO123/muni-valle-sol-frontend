@@ -1,13 +1,15 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Sidebar from '@/components/Sidebar'
 import PanelAlertas from '@/components/PanelAlertas'
 import TablaReportes from '@/components/TablaReportes'
-import useDashboard from '@/hooks/useDashboard'
 import useAlertaStore from '@/store/useAlertaStore'
 import useAppStore from '@/store/useAppStore'
+import { obtenerReportes } from '@/services/reporteService'
+import { obtenerAlertas } from '@/services/alertaService'
+import { Reporte } from '@/types/Reporte'
 
 const MapaIncendios = dynamic(() => import('@/components/MapaIncendios'), {
   ssr: false,
@@ -19,14 +21,31 @@ const MapaIncendios = dynamic(() => import('@/components/MapaIncendios'), {
 })
 
 const DashboardPage = () => {
-  const { reportes, loading, error } = useDashboard()
-  const { alertasActivas } = useAlertaStore()
+  const { alertasActivas, setAlertasActivas } = useAlertaStore()
   const { darkMode } = useAppStore()
+  const [reportes, setReportes] = useState<Reporte[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const [reportesData, alertasData] = await Promise.all([
+        obtenerReportes(),
+        obtenerAlertas(),
+      ])
+      setReportes(reportesData)
+      setAlertasActivas(alertasData)
+    } catch {
+      setError('Error al cargar datos')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      window.location.reload()
-    }, 30000)
+    fetchData()
+    const interval = setInterval(fetchData, 30000)
     return () => clearInterval(interval)
   }, [])
 
@@ -43,7 +62,7 @@ const DashboardPage = () => {
             <span className="text-sm text-gray-500">Actualizando...</span>
           )}
           {error && (
-            <span className="text-sm text-red-500">Error al cargar datos</span>
+            <span className="text-sm text-red-500">{error}</span>
           )}
         </div>
 
