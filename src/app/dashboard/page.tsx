@@ -3,15 +3,15 @@
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import Sidebar from '@/components/Sidebar'
-import PanelAlertas from '@/components/PanelAlertas'
-import TablaReportes from '@/components/TablaReportes'
-import useAlertaStore from '@/store/useAlertaStore'
+import AlertPanel from '@/components/AlertPanel'
+import ReportTable from '@/components/ReportTable'
+import useAlertStore from '@/store/useAlertStore'
 import useAppStore from '@/store/useAppStore'
-import { obtenerReportes } from '@/services/reporteService'
-import { obtenerAlertas } from '@/services/alertaService'
-import { Reporte } from '@/types/Reporte'
+import { obtenerReportes } from '@/services/reportService'
+import { obtenerAlertas } from '@/services/alertService'
+import { Report } from '@/types/Report'
 
-const MapaIncendios = dynamic(() => import('@/components/MapaIncendios'), {
+const FireMap = dynamic(() => import('@/components/FireMap'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
@@ -21,20 +21,20 @@ const MapaIncendios = dynamic(() => import('@/components/MapaIncendios'), {
 })
 
 const DashboardPage = () => {
-  const { alertasActivas, setAlertasActivas } = useAlertaStore()
+  const { alertasActivas, setAlertasActivas } = useAlertStore()
   const { darkMode } = useAppStore()
-  const [reportes, setReportes] = useState<Reporte[]>([])
+  const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [reportesData, alertasData] = await Promise.all([
+      const [reportsData, alertasData] = await Promise.all([
         obtenerReportes(),
         obtenerAlertas(),
       ])
-      setReportes(reportesData)
+      setReports(reportsData)
       setAlertasActivas(alertasData)
     } catch {
       setError('Error al cargar datos')
@@ -68,16 +68,16 @@ const DashboardPage = () => {
 
         <div className="flex gap-4" style={{ height: '500px' }}>
           <div className="flex-1 bg-white rounded-lg shadow overflow-hidden">
-            <MapaIncendios reportes={reportes} />
+            <FireMap reports={reports} />
           </div>
 
           <div className="w-72 bg-white rounded-lg shadow p-4 overflow-y-auto">
-            <PanelAlertas alertas={alertasActivas} />
+            <AlertPanel alerts={alertasActivas} />
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
-          <TablaReportes reportes={reportes} />
+          <ReportTable reports={reports} />
         </div>
       </main>
     </div>

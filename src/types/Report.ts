@@ -1,4 +1,4 @@
-export interface Ubicacion {
+export interface Location {
   id: number
   lat: number
   lng: number
@@ -7,7 +7,7 @@ export interface Ubicacion {
   region: string
 }
 
-export interface Reporte {
+export interface Report {
   id: number
   titulo: string
   descripcion: string
@@ -15,5 +15,5 @@ export interface Reporte {
   estado: 'ACTIVO' | 'EN_REVISION' | 'PENDIENTE'
   emailUsuario: string
   fechaCreacion: string
-  ubicacion: Ubicacion | null
+  ubicacion: Location | null
 }

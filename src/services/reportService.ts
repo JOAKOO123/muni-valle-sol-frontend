@@ -1,8 +1,8 @@
-import { Reporte } from '@/types/Reporte'
+import { Report } from '@/types/Report'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BFF_URL
 
-export const obtenerReportes = async (): Promise<Reporte[]> => {
+export const obtenerReportes = async (): Promise<Report[]> => {
   const response = await fetch(`${BASE_URL}/api/reportes`, {
     credentials: 'include',
   })

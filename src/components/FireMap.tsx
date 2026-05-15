@@ -3,14 +3,14 @@
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { Reporte } from '@/types/Reporte'
+import { Report } from '@/types/Report'
 import useUserLocation from '@/hooks/useUserLocation'
 
-interface MapaIncendiosProps {
-  reportes: Reporte[]
+interface FireMapProps {
+  reports: Report[]
 }
 
-const MapaIncendios = ({ reportes }: MapaIncendiosProps) => {
+const FireMap = ({ reports }: FireMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const { userLocation } = useUserLocation()
@@ -58,7 +58,7 @@ const MapaIncendios = ({ reportes }: MapaIncendiosProps) => {
 
       const geojson: GeoJSON.FeatureCollection = {
         type: 'FeatureCollection',
-        features: reportes
+        features: reports
           .filter((r) => r.ubicacion !== null)
           .map((r) => ({
             type: 'Feature',
@@ -136,7 +136,7 @@ const MapaIncendios = ({ reportes }: MapaIncendiosProps) => {
     } else {
       map.current.on('load', agregarCirculos)
     }
-  }, [reportes])
+  }, [reports])
 
   return (
     <div
@@ -146,4 +146,4 @@ const MapaIncendios = ({ reportes }: MapaIncendiosProps) => {
   )
 }
 
-export default MapaIncendios
+export default FireMap

@@ -1,14 +1,14 @@
 import { create } from 'zustand'
-import { Alerta } from '@/types/Alerta'
+import { Alert } from '@/types/Alert'
 
-interface AlertaState {
-  alertasActivas: Alerta[]
-  setAlertasActivas: (alertas: Alerta[]) => void
-  agregarAlerta: (alerta: Alerta) => void
+interface AlertState {
+  alertasActivas: Alert[]
+  setAlertasActivas: (alertas: Alert[]) => void
+  agregarAlerta: (alerta: Alert) => void
   limpiarAlertas: () => void
 }
 
-const useAlertaStore = create<AlertaState>((set) => ({
+const useAlertStore = create<AlertState>((set) => ({
   alertasActivas: [],
   setAlertasActivas: (alertas) => set({ alertasActivas: alertas }),
   agregarAlerta: (alerta) =>
@@ -16,4 +16,4 @@ const useAlertaStore = create<AlertaState>((set) => ({
   limpiarAlertas: () => set({ alertasActivas: [] }),
 }))
 
-export default useAlertaStore
+export default useAlertStore

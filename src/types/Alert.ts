@@ -1,4 +1,4 @@
-export interface Alerta {
+export interface Alert {
   id: string;
   titulo: string;
   descripcion: string;

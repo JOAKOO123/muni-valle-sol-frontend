@@ -1,14 +1,14 @@
-import useReportes from './useReportes'
-import useAlertas from './useAlertas'
+import useReports from './useReports'
+import useAlerts from './useAlerts'
 
 const useDashboard = () => {
-  const { reportes, loading: loadingReportes, error: errorReportes } = useReportes()
-  const { loading: loadingAlertas, error: errorAlertas } = useAlertas()
+  const { reports, loading: loadingReports, error: errorReports } = useReports()
+  const { loading: loadingAlerts, error: errorAlerts } = useAlerts()
 
   return {
-    reportes,
-    loading: loadingReportes || loadingAlertas,
-    error: errorReportes || errorAlertas,
+    reports,
+    loading: loadingReports || loadingAlerts,
+    error: errorReports || errorAlerts,
   }
 }
 

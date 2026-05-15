@@ -1,10 +1,10 @@
 import { create } from 'zustand'
-import { Usuario } from '@/types/Usuario'
+import { User } from '@/types/User'
 
 interface AuthState {
-  usuario: Usuario | null
+  usuario: User | null
   isAuthenticated: boolean
-  login: (usuario: Usuario) => void
+  login: (usuario: User) => void
   logout: () => void
 }
 

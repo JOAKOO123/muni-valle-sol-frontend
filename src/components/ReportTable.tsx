@@ -1,9 +1,9 @@
 'use client'
 
-import { Reporte } from '@/types/Reporte'
+import { Report } from '@/types/Report'
 
-interface TablaReportesProps {
-  reportes: Reporte[]
+interface ReportTableProps {
+  reports: Report[]
 }
 
 const colorEstado = (estado: string): string => {
@@ -19,14 +19,14 @@ const colorEstado = (estado: string): string => {
   }
 }
 
-const TablaReportes = ({ reportes }: TablaReportesProps) => {
+const ReportTable = ({ reports }: ReportTableProps) => {
   return (
     <div className="overflow-x-auto">
       <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3">
         Reportes de Incendios
       </h2>
 
-      {reportes.length === 0 ? (
+      {reports.length === 0 ? (
         <p className="text-gray-500 dark:text-gray-400 text-sm">
           No hay reportes disponibles.
         </p>
@@ -41,7 +41,7 @@ const TablaReportes = ({ reportes }: TablaReportesProps) => {
             </tr>
           </thead>
           <tbody>
-            {reportes.map((reporte) => (
+            {reports.map((reporte) => (
               <tr
                 key={reporte.id}
                 className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -71,4 +71,4 @@ const TablaReportes = ({ reportes }: TablaReportesProps) => {
   )
 }
 
-export default TablaReportes
+export default ReportTable

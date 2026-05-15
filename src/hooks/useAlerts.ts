@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
-import { obtenerAlertas } from '@/services/alertaService'
-import useAlertaStore from '@/store/useAlertaStore'
+import { obtenerAlertas } from '@/services/alertService'
+import useAlertStore from '@/store/useAlertStore'
 
-interface UseAlertasReturn {
+interface UseAlertsReturn {
   loading: boolean
   error: string | null
 }
 
-const useAlertas = (): UseAlertasReturn => {
-  const { setAlertasActivas } = useAlertaStore()
+const useAlerts = (): UseAlertsReturn => {
+  const { setAlertasActivas } = useAlertStore()
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,4 +30,4 @@ const useAlertas = (): UseAlertasReturn => {
   return { loading, error }
 }
 
-export default useAlertas
+export default useAlerts

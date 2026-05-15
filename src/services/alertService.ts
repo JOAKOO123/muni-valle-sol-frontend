@@ -1,8 +1,8 @@
-import { Alerta } from '@/types/Alerta'
+import { Alert } from '@/types/Alert'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BFF_URL
 
-export const obtenerAlertas = async (): Promise<Alerta[]> => {
+export const obtenerAlertas = async (): Promise<Alert[]> => {
   const response = await fetch(`${BASE_URL}/api/alertas`, {
     credentials: 'include',
   })

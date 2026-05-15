@@ -1,9 +1,9 @@
 'use client'
 
-import { Alerta } from '@/types/Alerta'
+import { Alert } from '@/types/Alert'
 
-interface PanelAlertasProps {
-  alertas: Alerta[]
+interface AlertPanelProps {
+  alerts: Alert[]
 }
 
 const colorSeveridad = (severidad: string): string => {
@@ -19,19 +19,19 @@ const colorSeveridad = (severidad: string): string => {
   }
 }
 
-const PanelAlertas = ({ alertas }: PanelAlertasProps) => {
+const AlertPanel = ({ alerts }: AlertPanelProps) => {
   return (
     <div className="flex flex-col gap-3 overflow-y-auto h-full">
       <h2 className="text-lg font-bold text-gray-800 dark:text-white">
         Alertas Activas
       </h2>
 
-      {alertas.length === 0 ? (
+      {alerts.length === 0 ? (
         <p className="text-gray-500 dark:text-gray-400 text-sm">
           No hay alertas activas en este momento.
         </p>
       ) : (
-        alertas.map((alerta) => (
+        alerts.map((alerta) => (
           <div
             key={alerta.id}
             className={`border-l-4 rounded p-3 text-sm ${colorSeveridad(alerta.severidad)}`}
@@ -46,4 +46,4 @@ const PanelAlertas = ({ alertas }: PanelAlertasProps) => {
   )
 }
 
-export default PanelAlertas
+export default AlertPanel

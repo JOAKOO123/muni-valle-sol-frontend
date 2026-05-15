@@ -1,34 +1,34 @@
 import { useState, useEffect } from 'react'
-import { Reporte } from '@/types/Reporte'
-import { obtenerReportes } from '@/services/reporteService'
+import { Report } from '@/types/Report'
+import { obtenerReportes } from '@/services/reportService'
 
-interface UseReportesReturn {
-  reportes: Reporte[]
+interface UseReportsReturn {
+  reports: Report[]
   loading: boolean
   error: string | null
 }
 
-const useReportes = (): UseReportesReturn => {
-  const [reportes, setReportes] = useState<Reporte[]>([])
+const useReports = (): UseReportsReturn => {
+  const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchReportes = async () => {
+    const fetchReports = async () => {
       try {
         setLoading(true)
         const data = await obtenerReportes()
-        setReportes(data)
+        setReports(data)
       } catch {
         setError('Error al obtener reportes')
       } finally {
         setLoading(false)
       }
     }
-    fetchReportes()
+    fetchReports()
   }, [])
 
-  return { reportes, loading, error }
+  return { reports, loading, error }
 }
 
-export default useReportes
+export default useReports
