@@ -34,3 +34,23 @@ export const actualizarReporte = async (id: number, titulo: string): Promise<Rep
   }
   return response.json()
 }
+
+export const crearReporte = async (data: {
+  titulo: string
+  descripcion: string
+  latitud: number
+  longitud: number
+  tipo: 'INCENDIO' | 'HUMO' | 'SOSPECHOSO'
+  emailUsuario: string
+}): Promise<Report> => {
+  const response = await fetch(`${BASE_URL}/api/reportes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    throw new Error('Error al crear reporte')
+  }
+  return response.json()
+}
