@@ -11,3 +11,26 @@ export const obtenerReportes = async (): Promise<Report[]> => {
   }
   return response.json()
 }
+
+export const eliminarReporte = async (id: number): Promise<void> => {
+  const response = await fetch(`${BASE_URL}/api/reportes/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    throw new Error('Error al eliminar reporte')
+  }
+}
+
+export const actualizarReporte = async (id: number, titulo: string): Promise<Report> => {
+  const response = await fetch(`${BASE_URL}/api/reportes/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ titulo }),
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    throw new Error('Error al actualizar reporte')
+  }
+  return response.json()
+}

@@ -11,3 +11,20 @@ export const obtenerAlertas = async (): Promise<Alert[]> => {
   }
   return response.json()
 }
+
+export const crearAlerta = async (data: {
+  titulo: string
+  descripcion: string
+  severidad: 'ALTA' | 'MEDIA' | 'BAJA'
+}) => {
+  const response = await fetch(`${BASE_URL}/api/alertas`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    throw new Error('Error al crear alerta')
+  }
+  return response.json()
+}
