@@ -13,8 +13,11 @@ interface FireMapProps {
 const FireMap = ({ reports }: FireMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
+  const userMarker = useRef<maplibregl.Marker | null>(null)
+  const mapReady = useRef(false)
   const { userLocation } = useUserLocation()
 
+  // Inicializar mapa
   useEffect(() => {
     if (!mapContainer.current) return
 
@@ -27,14 +30,59 @@ const FireMap = ({ reports }: FireMapProps) => {
 
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
 
+    map.current.on('load', () => {
+      mapReady.current = true
+    })
+
     return () => {
+      userMarker.current?.remove()
       map.current?.remove()
     }
   }, [])
 
-  // Centrar en ubicacion del usuario
+  // Marcador de ubicacion del usuario
   useEffect(() => {
     if (!map.current || !userLocation) return
+
+    // Crear elemento visual del marcador (punto azul pulsante)
+    const el = document.createElement('div')
+    el.style.cssText = `
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #3B82F6;
+      border: 3px solid white;
+      box-shadow: 0 0 0 2px #3B82F6;
+      animation: pulse-user 2s ease-in-out infinite;
+    `
+
+    // Inyectar keyframes si no existen
+    if (!document.getElementById('user-marker-style')) {
+      const style = document.createElement('style')
+      style.id = 'user-marker-style'
+      style.textContent = `
+        @keyframes pulse-user {
+          0%   { box-shadow: 0 0 0 2px rgba(59,130,246,0.8); }
+          50%  { box-shadow: 0 0 0 10px rgba(59,130,246,0); }
+          100% { box-shadow: 0 0 0 2px rgba(59,130,246,0.8); }
+        }
+      `
+      document.head.appendChild(style)
+    }
+
+    // Eliminar marcador anterior si existe
+    userMarker.current?.remove()
+
+    userMarker.current = new maplibregl.Marker({ element: el, anchor: 'center' })
+      .setLngLat([userLocation.lng, userLocation.lat])
+      .setPopup(
+        new maplibregl.Popup({ offset: 16 }).setHTML(
+          '<strong>Tu ubicación</strong>'
+        )
+      )
+      .addTo(map.current)
+
+    // Volar a la ubicacion del usuario
     map.current.flyTo({
       center: [userLocation.lng, userLocation.lat],
       zoom: 13,
