@@ -21,9 +21,10 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
-          env:
-            - name: NODE_ENV
-              value: "production"
+          # NEXT_PUBLIC_BFF_URL NO se inyecta aquí porque Next.js la incrusta
+          # en el bundle estático durante el build (tiempo de compilación).
+          # Se pasa como --build-arg en el workflow de GitHub Actions.
+          # NODE_ENV=production ya está seteado en el Dockerfile.
           resources:
             requests:
               memory: "256Mi"
