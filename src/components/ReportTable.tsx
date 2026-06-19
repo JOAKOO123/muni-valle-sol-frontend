@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Report } from '@/types/Report'
-import { eliminarReporte, actualizarReporte } from '@/services/reportService'
+import { eliminarReporte, actualizarReporte, emitirAlerta } from '@/services/reportService'
 import useAuthStore from '@/store/useAuthStore'
 
 interface ReportTableProps {
@@ -27,10 +27,12 @@ const colorEstado = (estado: string): string => {
 const ReportTable = ({ reports, reportes, onReportesChange }: ReportTableProps) => {
   const { usuario } = useAuthStore()
   const isAdmin = usuario?.rol === 'ADMIN'
+  const canEmitir = usuario?.rol === 'ADMIN' || usuario?.rol === 'BRIGADISTA'
   const [localReports, setLocalReports] = useState<Report[]>(reports ?? reportes ?? [])
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingTitulo, setEditingTitulo] = useState('')
   const [loading, setLoading] = useState(false)
+  const [emitiendo, setEmitiendo] = useState<number | null>(null)
 
   useEffect(() => {
     setLocalReports(reports ?? reportes ?? [])
@@ -76,6 +78,19 @@ const ReportTable = ({ reports, reportes, onReportesChange }: ReportTableProps) 
     setEditingTitulo('')
   }
 
+  const handleEmitirAlerta = async (id: number) => {
+    if (!confirm('¿Emitir alerta pública a partir de este reporte?')) return
+    try {
+      setEmitiendo(id)
+      await emitirAlerta(id)
+      alert('Alerta emitida correctamente')
+    } catch {
+      alert('Error al emitir la alerta')
+    } finally {
+      setEmitiendo(null)
+    }
+  }
+
   return (
     <div className="overflow-x-auto">
       <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-3">
@@ -94,7 +109,7 @@ const ReportTable = ({ reports, reportes, onReportesChange }: ReportTableProps) 
               <th className="px-3 md:px-4 py-2 hidden sm:table-cell">Comuna</th>
               <th className="px-3 md:px-4 py-2">Estado</th>
               <th className="px-3 md:px-4 py-2 hidden md:table-cell">Fecha</th>
-              {isAdmin && <th className="px-4 py-2">Acciones</th>}
+              {canEmitir && <th className="px-4 py-2">Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -128,42 +143,53 @@ const ReportTable = ({ reports, reportes, onReportesChange }: ReportTableProps) 
                     ? new Date(reporte.fechaCreacion).toLocaleDateString('es-CL')
                     : '-'}
                 </td>
-                {isAdmin && (
+                {canEmitir && (
                   <td className="px-3 md:px-4 py-2">
-                    <div className="flex items-center gap-1 md:gap-2">
-                      {editingId === reporte.id ? (
+                    <div className="flex items-center gap-1 md:gap-2 flex-wrap">
+                      {isAdmin && (
                         <>
-                          <button
-                            onClick={() => handleGuardar(reporte.id)}
-                            disabled={loading}
-                            className="rounded bg-green-600 px-2 py-1 text-xs text-white transition hover:bg-green-700 disabled:opacity-40"
-                          >
-                            Guardar
-                          </button>
-                          <button
-                            onClick={handleCancelarEdicion}
-                            className="rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 transition hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200"
-                          >
-                            Cancelar
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => handleEditar(reporte)}
-                            className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 transition hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleEliminar(reporte.id)}
-                            disabled={loading}
-                            className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 transition hover:bg-red-200 disabled:opacity-40 dark:bg-red-900 dark:text-red-200"
-                          >
-                            Eliminar
-                          </button>
+                          {editingId === reporte.id ? (
+                            <>
+                              <button
+                                onClick={() => handleGuardar(reporte.id)}
+                                disabled={loading}
+                                className="rounded bg-green-600 px-2 py-1 text-xs text-white transition hover:bg-green-700 disabled:opacity-40"
+                              >
+                                Guardar
+                              </button>
+                              <button
+                                onClick={handleCancelarEdicion}
+                                className="rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 transition hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200"
+                              >
+                                Cancelar
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handleEditar(reporte)}
+                                className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 transition hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => handleEliminar(reporte.id)}
+                                disabled={loading}
+                                className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 transition hover:bg-red-200 disabled:opacity-40 dark:bg-red-900 dark:text-red-200"
+                              >
+                                Eliminar
+                              </button>
+                            </>
+                          )}
                         </>
                       )}
+                      <button
+                        onClick={() => handleEmitirAlerta(reporte.id)}
+                        disabled={emitiendo === reporte.id}
+                        className="rounded bg-orange-100 px-2 py-1 text-xs text-orange-700 transition hover:bg-orange-200 disabled:opacity-40 dark:bg-orange-900 dark:text-orange-200"
+                      >
+                        {emitiendo === reporte.id ? 'Emitiendo...' : 'Emitir Alerta'}
+                      </button>
                     </div>
                   </td>
                 )}

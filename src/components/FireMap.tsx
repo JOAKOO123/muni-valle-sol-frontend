@@ -3,14 +3,14 @@
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { Report } from '@/types/Report'
+import { Alert } from '@/types/Alert'
 import useUserLocation from '@/hooks/useUserLocation'
 
 interface FireMapProps {
-  reports: Report[]
+  alerts: Alert[]
 }
 
-const FireMap = ({ reports }: FireMapProps) => {
+const FireMap = ({ alerts }: FireMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const userMarker = useRef<maplibregl.Marker | null>(null)
@@ -90,7 +90,7 @@ const FireMap = ({ reports }: FireMapProps) => {
     })
   }, [userLocation])
 
-  // Agregar circulos de incendios
+  // Agregar circulos de alertas en el mapa
   useEffect(() => {
     if (!map.current) return
 
@@ -106,18 +106,17 @@ const FireMap = ({ reports }: FireMapProps) => {
 
       const geojson: GeoJSON.FeatureCollection = {
         type: 'FeatureCollection',
-        features: reports
-          .filter((r) => r.ubicacion !== null)
-          .map((r) => ({
+        features: alerts
+          .filter((a) => a.latitud != null && a.longitud != null)
+          .map((a) => ({
             type: 'Feature',
             geometry: {
               type: 'Point',
-              coordinates: [r.ubicacion!.lng, r.ubicacion!.lat],
+              coordinates: [a.longitud!, a.latitud!],
             },
             properties: {
-              titulo: r.titulo,
-              estado: r.estado,
-              tipo: r.tipo,
+              titulo: a.titulo,
+              severidad: a.severidad,
             },
           })),
       }
@@ -164,8 +163,7 @@ const FireMap = ({ reports }: FireMapProps) => {
           .setLngLat([coords[0], coords[1]])
           .setHTML(`
             <strong>${props.titulo}</strong><br/>
-            Estado: ${props.estado}<br/>
-            Tipo: ${props.tipo}
+            Severidad: ${props.severidad}
           `)
           .addTo(map.current!)
       })
@@ -184,7 +182,7 @@ const FireMap = ({ reports }: FireMapProps) => {
     } else {
       map.current.on('load', agregarCirculos)
     }
-  }, [reports])
+  }, [alerts])
 
   return (
     <div

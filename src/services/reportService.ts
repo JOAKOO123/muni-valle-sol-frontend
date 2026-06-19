@@ -1,4 +1,5 @@
 import { Report } from '@/types/Report'
+import { Alert } from '@/types/Alert'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BFF_URL
 
@@ -51,6 +52,17 @@ export const crearReporte = async (data: {
   })
   if (!response.ok) {
     throw new Error('Error al crear reporte')
+  }
+  return response.json()
+}
+
+export const emitirAlerta = async (id: number): Promise<Alert> => {
+  const response = await fetch(`${BASE_URL}/api/reportes/${id}/emitir-alerta`, {
+    method: 'POST',
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    throw new Error('Error al emitir alerta')
   }
   return response.json()
 }
