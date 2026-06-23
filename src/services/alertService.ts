@@ -16,6 +16,8 @@ export const crearAlerta = async (data: {
   titulo: string
   descripcion: string
   severidad: 'ALTA' | 'MEDIA' | 'BAJA'
+  latitud?: number
+  longitud?: number
 }) => {
   const response = await fetch(`${BASE_URL}/api/alertas`, {
     method: 'POST',

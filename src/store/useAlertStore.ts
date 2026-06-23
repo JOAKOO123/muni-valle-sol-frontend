@@ -10,9 +10,9 @@ interface AlertState {
 
 const useAlertStore = create<AlertState>((set) => ({
   alertasActivas: [],
-  setAlertasActivas: (alertas) => set({ alertasActivas: alertas }),
-  agregarAlerta: (alerta) =>
-    set((state) => ({ alertasActivas: [...state.alertasActivas, alerta] })),
+  setAlertasActivas: (alertas: Alert[]) => set({ alertasActivas: alertas }),
+  agregarAlerta: (alerta: Alert) =>
+    set((state: AlertState) => ({ alertasActivas: [...state.alertasActivas, alerta] })),
   limpiarAlertas: () => set({ alertasActivas: [] }),
 }))
 
