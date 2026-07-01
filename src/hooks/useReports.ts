@@ -15,8 +15,24 @@ const useReports = (enabled: boolean = true): UseReportsReturn => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchReports = useCallback(async () => {
+  useEffect(() => {
     if (!enabled) return
+
+    const fetchReports = async () => {
+      try {
+        setLoading(true)
+        const data = await obtenerReportes()
+        setReports(data)
+      } catch {
+        setError('Error al obtener reportes')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchReports()
+  }, [enabled])
+
+  const refetch = useCallback(async () => {
     try {
       setLoading(true)
       const data = await obtenerReportes()
@@ -26,13 +42,9 @@ const useReports = (enabled: boolean = true): UseReportsReturn => {
     } finally {
       setLoading(false)
     }
-  }, [enabled])
+  }, [])
 
-  useEffect(() => {
-    fetchReports()
-  }, [fetchReports])
-
-  return { reports, setReports, loading, error, refetch: fetchReports }
+  return { reports, setReports, loading, error, refetch }
 }
 
 export default useReports

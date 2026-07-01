@@ -20,7 +20,9 @@ const useDashboard = (isAdmin: boolean) => {
   }, [refetchAlerts, refetchReports, isAdmin])
 
   useEffect(() => {
-    const interval = setInterval(refetch, POLL_INTERVAL_MS)
+    const interval = setInterval(() => {
+      refetch()
+    }, POLL_INTERVAL_MS)
     return () => clearInterval(interval)
   }, [refetch])
 

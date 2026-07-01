@@ -13,7 +13,22 @@ const useAlerts = (): UseAlertsReturn => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchAlertas = useCallback(async () => {
+  useEffect(() => {
+    const fetchAlertas = async () => {
+      try {
+        setLoading(true)
+        const data = await obtenerAlertas()
+        setAlertasActivas(data)
+      } catch {
+        setError('Error al obtener alertas')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAlertas()
+  }, [setAlertasActivas])
+
+  const refetch = useCallback(async () => {
     try {
       setLoading(true)
       const data = await obtenerAlertas()
@@ -25,11 +40,7 @@ const useAlerts = (): UseAlertsReturn => {
     }
   }, [setAlertasActivas])
 
-  useEffect(() => {
-    fetchAlertas()
-  }, [fetchAlertas])
-
-  return { loading, error, refetch: fetchAlertas }
+  return { loading, error, refetch }
 }
 
 export default useAlerts
