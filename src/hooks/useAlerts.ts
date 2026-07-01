@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { obtenerAlertas } from '@/services/alertService'
 import useAlertStore from '@/store/useAlertStore'
 
 interface UseAlertsReturn {
   loading: boolean
   error: string | null
+  refetch: () => Promise<void>
 }
 
 const useAlerts = (): UseAlertsReturn => {
@@ -12,22 +13,23 @@ const useAlerts = (): UseAlertsReturn => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchAlertas = async () => {
-      try {
-        setLoading(true)
-        const data = await obtenerAlertas()
-        setAlertasActivas(data)
-      } catch {
-        setError('Error al obtener alertas')
-      } finally {
-        setLoading(false)
-      }
+  const fetchAlertas = useCallback(async () => {
+    try {
+      setLoading(true)
+      const data = await obtenerAlertas()
+      setAlertasActivas(data)
+    } catch {
+      setError('Error al obtener alertas')
+    } finally {
+      setLoading(false)
     }
-    fetchAlertas()
-  }, [])
+  }, [setAlertasActivas])
 
-  return { loading, error }
+  useEffect(() => {
+    fetchAlertas()
+  }, [fetchAlertas])
+
+  return { loading, error, refetch: fetchAlertas }
 }
 
 export default useAlerts
