@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Sidebar from '@/components/Sidebar'
 import AlertPanel from '@/components/AlertPanel'
 import ReportTable from '@/components/ReportTable'
@@ -10,9 +10,7 @@ import CreateReportModal from '@/components/CreateReportModal'
 import useAlertStore from '@/store/useAlertStore'
 import useAppStore from '@/store/useAppStore'
 import useAuthStore from '@/store/useAuthStore'
-import { obtenerReportes } from '@/services/reportService'
-import { obtenerAlertas } from '@/services/alertService'
-import { Report } from '@/types/Report'
+import useDashboard from '@/hooks/useDashboard'
 
 const FireMap = dynamic(() => import('@/components/FireMap'), {
   ssr: false,
@@ -24,40 +22,16 @@ const FireMap = dynamic(() => import('@/components/FireMap'), {
 })
 
 const DashboardPage = () => {
-  const { alertasActivas, setAlertasActivas } = useAlertStore()
+  const { alertasActivas } = useAlertStore()
   const { darkMode } = useAppStore()
   const { usuario } = useAuthStore()
 
-  const [reportes, setReportes] = useState<Report[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [showAlertModal, setShowAlertModal] = useState(false)
-  const [showReportModal, setShowReportModal] = useState(false)
-
   const isAdmin = usuario?.rol === 'ADMIN'
 
-  const fetchData = async () => {
-    try {
-      setLoading(true)
-      const alertasData = await obtenerAlertas()
-      setAlertasActivas(alertasData)
+  const { reports: reportes, setReports: setReportes, loading, error, refetch } = useDashboard(isAdmin)
 
-      if (isAdmin) {
-        const reportesData = await obtenerReportes()
-        setReportes(reportesData)
-      }
-    } catch {
-      setError('Error al cargar datos')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchData()
-    const interval = setInterval(fetchData, 30000)
-    return () => clearInterval(interval)
-  }, [isAdmin])
+  const [showAlertModal, setShowAlertModal] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
 
   return (
     <div className={`flex w-full min-h-screen ${darkMode ? 'dark' : ''}`}>
@@ -139,14 +113,14 @@ const DashboardPage = () => {
       {showAlertModal && (
         <CreateAlertModal
           onClose={() => setShowAlertModal(false)}
-          onSuccess={fetchData}
+          onSuccess={refetch}
         />
       )}
 
       {showReportModal && (
         <CreateReportModal
           onClose={() => setShowReportModal(false)}
-          onSuccess={fetchData}
+          onSuccess={refetch}
         />
       )}
     </div>
