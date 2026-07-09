@@ -10,10 +10,25 @@ interface FireMapProps {
   alerts: Alert[]
 }
 
+const colorSeveridad = (severidad: string): string => {
+  switch (severidad) {
+    case 'ALTA':
+      return '#DC2626'
+    case 'MEDIA':
+      return '#D97706'
+    case 'BAJA':
+      return '#16A34A'
+    default:
+      return '#6B7280'
+  }
+}
+
 const FireMap = ({ alerts }: FireMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const userMarker = useRef<maplibregl.Marker | null>(null)
+  const hoverPopup = useRef<maplibregl.Popup | null>(null)
+  const hoverListenersAdded = useRef(false)
   const mapReady = useRef(false)
   const { userLocation } = useUserLocation()
 
@@ -35,6 +50,7 @@ const FireMap = ({ alerts }: FireMapProps) => {
     })
 
     return () => {
+      hoverPopup.current?.remove()
       userMarker.current?.remove()
       map.current?.remove()
     }
@@ -116,7 +132,9 @@ const FireMap = ({ alerts }: FireMapProps) => {
             },
             properties: {
               titulo: a.titulo,
+              descripcion: a.descripcion,
               severidad: a.severidad,
+              fecha: a.fecha,
             },
           })),
       }
@@ -153,28 +171,50 @@ const FireMap = ({ alerts }: FireMapProps) => {
         },
       })
 
-      // Popup al hacer click
-      map.current.on('click', 'incendios-circle', (e) => {
-        if (!e.features || !e.features[0]) return
-        const props = e.features[0].properties
-        const coords = (e.features[0].geometry as GeoJSON.Point).coordinates
+      // Tarjeta al pasar el cursor por encima (hover) — los listeners se
+      // registran una sola vez porque el id de la capa no cambia entre renders
+      if (!hoverListenersAdded.current) {
+        map.current.on('mouseenter', 'incendios-circle', (e) => {
+          if (!map.current || !e.features || !e.features[0]) return
+          map.current.getCanvas().style.cursor = 'pointer'
 
-        new maplibregl.Popup()
-          .setLngLat([coords[0], coords[1]])
-          .setHTML(`
-            <strong>${props.titulo}</strong><br/>
-            Severidad: ${props.severidad}
-          `)
-          .addTo(map.current!)
-      })
+          const props = e.features[0].properties
+          const coords = (e.features[0].geometry as GeoJSON.Point).coordinates.slice() as [number, number]
+          const color = colorSeveridad(props.severidad)
 
-      map.current.on('mouseenter', 'incendios-circle', () => {
-        if (map.current) map.current.getCanvas().style.cursor = 'pointer'
-      })
+          hoverPopup.current?.remove()
+          hoverPopup.current = new maplibregl.Popup({
+            closeButton: false,
+            closeOnClick: false,
+            offset: 14,
+          })
+            .setLngLat(coords)
+            .setHTML(`
+              <div style="min-width:220px; max-width:260px; font-family: inherit;">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                  <span style="width:10px; height:10px; border-radius:50%; background:${color}; display:inline-block; flex-shrink:0;"></span>
+                  <strong style="font-size:14px; color:#111827; line-height:1.2;">${props.titulo ?? ''}</strong>
+                </div>
+                ${props.descripcion ? `<p style="font-size:12px; color:#374151; margin:4px 0; line-height:1.4;">${props.descripcion}</p>` : ''}
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:8px;">
+                  <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:9999px; background:${color}1A; color:${color};">
+                    ${props.severidad ?? ''}
+                  </span>
+                  ${props.fecha ? `<span style="font-size:11px; color:#6B7280; white-space:nowrap;">${props.fecha}</span>` : ''}
+                </div>
+              </div>
+            `)
+            .addTo(map.current)
+        })
 
-      map.current.on('mouseleave', 'incendios-circle', () => {
-        if (map.current) map.current.getCanvas().style.cursor = ''
-      })
+        map.current.on('mouseleave', 'incendios-circle', () => {
+          if (map.current) map.current.getCanvas().style.cursor = ''
+          hoverPopup.current?.remove()
+          hoverPopup.current = null
+        })
+
+        hoverListenersAdded.current = true
+      }
     }
 
     if (map.current.isStyleLoaded()) {
